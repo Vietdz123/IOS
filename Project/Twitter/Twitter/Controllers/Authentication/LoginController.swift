@@ -6,16 +6,30 @@
 //
 
 import UIKit
+import FirebaseAuth
+import FirebaseCore
 
 class LoginController: UIViewController {
     
     //MARK: - Selectors:
     @objc func handleLoginButton() {
-        print("handle login")
+        guard let email = emailTextFiled.text else {return}
+        guard let password = passwordTextFiled.text else {return}
+        
+        AuthService.shared.login(email: email, password: password) { authResult, err in
+            if let err = err {
+                print("DEBUG: \(err.localizedDescription)")
+            } else {
+                let mainTabBarController = MainTabBarController()
+                mainTabBarController.modalPresentationStyle = .fullScreen
+                DispatchQueue.main.async {
+                    self.present(mainTabBarController, animated: true, completion: nil)
+                }
+            }
+        }
     }
     
     @objc func handleShowSignUp() {
-        print("abc")
         let registratrionVC = RegistrationController()
         self.navigationController?.pushViewController(registratrionVC, animated: true)
     }
@@ -24,6 +38,7 @@ class LoginController: UIViewController {
     
     // MARK: Properties
 
+    //Logo
     private let logoImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
@@ -32,23 +47,33 @@ class LoginController: UIViewController {
         return imageView
     }()
     
-    private let emailView : UIView = {
+    //Email
+    private lazy var emailTextFiled : UITextField = {
         let textFiled = Utilities().configureTextField(withPlaceholder: "Email")
-        let image = UIImage(named: "ic_mail_outline_white_2x-1")
+        return textFiled
+    }()
     
-        let view = Utilities().inputContainerView(textFiled: textFiled, image: image!)
-        
+    private lazy var emailView : UIView = {
+        let image = UIImage(named: "ic_mail_outline_white_2x-1")
+        let view = Utilities().inputContainerView(textFiled: emailTextFiled, image: image!)
         return view
     }()
     
-    private let passwordView : UIView = {
+    //Password
+    private lazy var passwordTextFiled : UITextField = {
         let textFiled = Utilities().configureTextField(withPlaceholder: "Password")
+        return textFiled
+    }()
+    
+    private lazy var passwordView : UIView = {
         let image = UIImage(named: "ic_lock_outline_white_2x")
         //textFiled.isSecureTextEntry = true
-        let view = Utilities().inputContainerView(textFiled: textFiled, image: image!)
+        let view = Utilities().inputContainerView(textFiled: passwordTextFiled, image: image!)
         return view
     }()
     
+    
+    //LoginButton
     var loginButton: UIButton = {
         let button = UIButton(type: .system)
         
@@ -62,6 +87,8 @@ class LoginController: UIViewController {
         return button
     }()
     
+    
+    //DontHaveAccount
     var dontHaveAnAccountButton: UIButton = {
         let button = Utilities().attributedButton("Don't have an account?", " Sign Up")
         button.addTarget(self, action: #selector(handleShowSignUp), for: .touchUpInside)

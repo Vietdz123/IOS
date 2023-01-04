@@ -6,6 +6,11 @@
 //
 
 import UIKit
+import FirebaseCore
+import FirebaseAuth
+import FirebaseFirestore
+import FirebaseCoreInternal
+import FirebaseStorage
 
 class RegistrationController: UIViewController {
     
@@ -20,7 +25,22 @@ class RegistrationController: UIViewController {
     
     
     @objc func handleShowSignUp() {
-        print("Sign Up")
+        guard let email = emailTextFiled.text else {return}
+        guard let password = passwordTextFiled.text else {return}
+        guard let userName = userNameTextFiled.text else {return}
+        guard let fullName = fullNameTextFiled.text else {return}
+
+        let authCredial = AuthCrentials(email: email, password: password, fullName: fullName, userName: userName, imageProfile: imageProfile)
+        
+        AuthService.shared.registerUser(authCretical: authCredial) { err in
+            if let err = err {
+                print("DEBUG: Error writing document: \(err)")
+            } else {
+                self.navigationController?.popViewController(animated: true)
+            }
+        }
+        
+
     }
     
     
@@ -29,9 +49,11 @@ class RegistrationController: UIViewController {
     
     //imagePicker: UIImagePickerController để mở cái thư viện ảnh lên
     private let imagePicker = UIImagePickerController()
+    private var imageProfile = UIImage()
+    let db = Firestore.firestore()
     
     //Image plus
-    private var plusPhotoButton: UIButton = {
+    private lazy var plusPhotoButton: UIButton = {
         let button = UIButton(type: .system)     //Phải xét .system thì tincolor mới có tác dụng
         button.setImage(UIImage(named: "plus_photo"), for: .normal)
         button.tintColor = .white
@@ -40,40 +62,60 @@ class RegistrationController: UIViewController {
     }()
     
     //email
-    private let emailView : UIView = {
+    private lazy var emailTextFiled : UITextField = {
         let textFiled = Utilities().configureTextField(withPlaceholder: "Email")
+        return textFiled
+    }()
+    
+    private lazy var emailView : UIView = {
+
         let image = UIImage(named: "ic_mail_outline_white_2x-1")
     
-        let view = Utilities().inputContainerView(textFiled: textFiled, image: image!)
+        let view = Utilities().inputContainerView(textFiled: emailTextFiled, image: image!)
         
         return view
     }()
     
+
+    
     //password
-    private let passwordView : UIView = {
+    private lazy var passwordTextFiled : UITextField = {
         let textFiled = Utilities().configureTextField(withPlaceholder: "Password")
+        return textFiled
+    }()
+    
+    private lazy var passwordView : UIView = {
+
         let image = UIImage(named: "ic_lock_outline_white_2x")
         //textFiled.isSecureTextEntry = true
-        let view = Utilities().inputContainerView(textFiled: textFiled, image: image!)
+        let view = Utilities().inputContainerView(textFiled: passwordTextFiled, image: image!)
         return view
     }()
     
     //FullName
-    private let fullNameView : UIView = {
+    private lazy var fullNameTextFiled : UITextField = {
         let textFiled = Utilities().configureTextField(withPlaceholder: "Full Name")
+        return textFiled
+    }()
+    
+    private lazy var fullNameView : UIView = {
         let image = UIImage(named: "ic_person_outline_white_2x")
         //textFiled.isSecureTextEntry = true
-        let view = Utilities().inputContainerView(textFiled: textFiled, image: image!)
+        let view = Utilities().inputContainerView(textFiled: fullNameTextFiled, image: image!)
         return view
     }()
     
     
     //UserName
-    private let userNameView : UIView = {
+    private lazy var userNameTextFiled : UITextField = {
         let textFiled = Utilities().configureTextField(withPlaceholder: "User Name")
+        return textFiled
+    }()
+        private lazy var userNameView : UIView = {
+
         let image = UIImage(named: "ic_person_outline_white_2x")
         //textFiled.isSecureTextEntry = true
-        let view = Utilities().inputContainerView(textFiled: textFiled, image: image!)
+        let view = Utilities().inputContainerView(textFiled: userNameTextFiled, image: image!)
         return view
     }()
     
@@ -138,6 +180,7 @@ class RegistrationController: UIViewController {
         alreadyHaveAnAccountButton.anchor(left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor,  paddingLeft: 40 , paddingRight: 40)
     }
     
+    
 
 }
 
@@ -147,6 +190,7 @@ extension RegistrationController: UIImagePickerControllerDelegate & UINavigation
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         guard let profileName = info[.editedImage] as? UIImage else {return}
         
+        imageProfile = profileName
         plusPhotoButton.layer.cornerRadius = 150/2
         plusPhotoButton.layer.masksToBounds = true  //Bo tròn button à :))) maybe
         plusPhotoButton.imageView?.contentMode = .scaleAspectFill

@@ -6,6 +6,10 @@
 //
 
 import UIKit
+import FirebaseCore
+import FirebaseAuth
+import FirebaseStorage
+import FirebaseFirestore
 
 class MainTabBarController: UITabBarController {
     
@@ -34,16 +38,15 @@ class MainTabBarController: UITabBarController {
     }()
     
 
-
+    
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .red
+        checkStateUserLogin()
         
-        configureViewController()
-        configureUI()
     }
     
     func configureUI() {
@@ -74,5 +77,30 @@ class MainTabBarController: UITabBarController {
         nav.navigationBar.barTintColor = .white
         return nav
     }
+    
+    func checkStateUserLogin() {
+        if Auth.auth().currentUser == nil {
+            DispatchQueue.main.async {
+                let navLogin = UINavigationController(rootViewController: LoginController())
+                navLogin.modalPresentationStyle = .fullScreen
+                self.present(navLogin, animated: true, completion: nil)
+            }
+        } else {
+            configureViewController()
+            configureUI()
+        }
+    }
+    
+    
+    //Catch Error hay vậy ?? Ảo
+    func logUserOut() {
+        do {
+            try Auth.auth().signOut()
+        } catch let error {
+            print("DEBUG: Logout failed ...")
+            print("DEBUG: \(error.localizedDescription)")
+        }
+    }
+    
 
 }
